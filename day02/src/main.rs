@@ -15,6 +15,8 @@ fn score(t: (u32, u32)) -> u32 {
 }
 
 fn new_t(t: (u32, u32)) -> (u32, u32) {
+    // originally written as a match, but then by observation
+    // the results come down to this formula (check version history to see!)
     (t.0, (t.0 + t.1 + 2) % 3)
 }
 
