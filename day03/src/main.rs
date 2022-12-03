@@ -7,12 +7,12 @@ fn ctov(c: char) -> u32 {
 }
 
 fn p1(s: &str) -> u32 {
-    let c: Vec<char> = s.chars().collect();
-    let mut i = c.chunks_exact(s.len() / 2);
-    let (a, b) = (i.next().unwrap(), i.next().unwrap());
-    for d in a {
+    let m = s.len() / 2;
+    let (a, b) = (&s[0..m], &s[m..]);
+
+    for d in a.chars() {
         if b.contains(d) {
-            return ctov(*d);
+            return ctov(d);
         }
     }
     unreachable!();
@@ -28,11 +28,15 @@ fn p2(s: &[&str]) -> u32 {
 }
 
 fn main() {
-    println!(
-        "part1: {}",
-        include_str!("../input.txt").lines().map(p1).sum::<u32>()
-    );
+    let i = include_str!("../input.txt");
+    println!("part1: {}", &i.lines().map(p1).sum::<u32>());
 
-    let m: Vec<_> = include_str!("../input.txt").lines().collect();
-    println!("part2: {}", m.chunks_exact(3).map(p2).sum::<u32>());
+    println!(
+        "part2: {}",
+        &i.lines()
+            .collect::<Vec<_>>()
+            .chunks_exact(3)
+            .map(p2)
+            .sum::<u32>()
+    );
 }
