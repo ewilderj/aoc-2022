@@ -9,7 +9,7 @@ fn ctov(c: char) -> u32 {
 fn main() {
     let i = include_str!("../input.txt");
     println!(
-        "part1: {:#?}",
+        "part1: {}",
         &i.lines()
             .map(|s| s.split_at(s.len() / 2))
             .map(|(a, b)| a.chars().filter(|&c| b.contains(c)).next().unwrap())
