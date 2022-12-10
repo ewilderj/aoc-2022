@@ -3,10 +3,7 @@ fn main() {
     let n = (l.find('\n').unwrap() + 1) / 4;
 
     // make some empty towers
-    let mut t: Vec<Vec<char>> = Vec::new();
-    for _ in 0..n {
-        t.push(Vec::new());
-    }
+    let mut t: Vec<Vec<char>> = vec![Vec::new(); n];
 
     // set up the initial configuration
     let (ts, is) = l.split_once("\n\n").unwrap();
