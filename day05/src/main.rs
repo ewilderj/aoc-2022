@@ -40,7 +40,7 @@ fn main() {
             t1[*to].push(r);
         }
     }
-    let p1: String = t1.iter().map(|v| v.get(v.len() - 1).unwrap()).collect();
+    let p1: String = t1.iter().map(|v| v.last().unwrap()).collect();
     println!("part1: {}", p1);
 
     // execute on the CrateMover 9001
@@ -50,6 +50,6 @@ fn main() {
         let mut tt: Vec<char> = t2[*from].split_off(pos);
         t2[*to].append(&mut tt);
     }
-    let p2: String = t2.iter().map(|v| v.get(v.len() - 1).unwrap()).collect();
+    let p2: String = t2.iter().map(|v| v.last().unwrap()).collect();
     println!("part2: {}", p2);
 }
