@@ -82,7 +82,7 @@ fn main() {
         }
     }
 
-    // make a depth-first enumeration of directories
+    // make a depth-first iterator over directory node_ids
     let node_ids = fs
         .traverse_post_order_ids(&root)
         .unwrap()
