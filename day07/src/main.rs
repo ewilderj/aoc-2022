@@ -1,8 +1,7 @@
 use id_tree::InsertBehavior::*;
 use id_tree::*;
-use std::cell::{RefCell, RefMut};
+use std::cell::RefCell;
 use std::iter::Peekable;
-
 
 #[derive(Debug, PartialEq, Clone)]
 struct FileNode {
@@ -30,7 +29,6 @@ fn process_line<'b, 'a>(
     s: &str,
     t: &'a mut MyTree,
 ) -> Option<&'a NodeId> {
-    // println!("{}", s);
     if s == "$ ls" {
         // add nodes as children of cwd
         while inp.peek() != None && !inp.peek().unwrap().starts_with('$') {
@@ -43,12 +41,11 @@ fn process_line<'b, 'a>(
             let n = Node::new(RefCell::new(FileNode::new(fname, sz, isdir)));
             let _ = &t.insert(n, UnderNode(cwd)).unwrap();
         }
-        // println!("{:#?}", t);
         return None;
     }
+
     // other case, it's a directory
     let d = s.split_whitespace().nth(2).unwrap();
-    // println!("CD {}", d);
     if d == ".." {
         let cnode = &t.get(cwd).unwrap();
         return Some(cnode.parent().unwrap());
@@ -60,7 +57,7 @@ fn process_line<'b, 'a>(
             .filter(|k| &t.get(k).unwrap().data().borrow().name == d)
             .next()
             .unwrap();
-        // println!("cd into {} {:#?}", d, c);
+        // returning a value changes the cwd
         return Some(c);
     }
 }
@@ -69,36 +66,42 @@ fn main() {
     let mut inp = include_str!("../input.txt").lines().peekable();
     let mut fs: MyTree = Tree::new();
     let _ = inp.next(); // skip "cd /" as implicit at the top of each input
+
+    // create our root node
     let mut cwd: NodeId = fs
         .insert(Node::new(RefCell::new(FileNode::new("/", 0, true))), AsRoot)
         .unwrap();
     let root: NodeId = cwd.clone();
-    //   println!("{:#?}", &fs.get(&cwd).unwrap());
+
     while let Some(s) = inp.next() {
         if s.starts_with('$') {
+            // process line, and if it's a "cd", change the cwd
             if let Some(nd) = process_line(&cwd, &mut inp, s, &mut fs) {
-                cwd = nd.clone(); // avoids borrowing fs
-                                  // println!("NEW CWD IS {:#?}", &fs.get(&cwd).unwrap());
+                cwd = nd.clone();
             }
         }
     }
 
-    // depth-first enumeration of directories
+    // make a depth-first enumeration of directories
     let node_ids = fs
         .traverse_post_order_ids(&root)
         .unwrap()
         .filter(|n| fs.get(n).unwrap().data().borrow().dir);
 
-    // compute directory size
-    let mut v: Vec<u32> = node_ids.clone().map (|n| {
-        let s: u32 = fs
-            .children(&n)
-            .unwrap()
-            .map(|c| c.data().borrow().size)
-            .sum::<u32>();
-        fs.get(&n).unwrap().data().borrow_mut().size = s;
-        s
-    }).collect();
+    // compute directory sizes and collect them
+    let mut v: Vec<u32> = node_ids
+        .map(|n| {
+            let s: u32 = fs
+                .children(&n)
+                .unwrap()
+                .map(|c| c.data().borrow().size)
+                .sum::<u32>();
+            fs.get(&n).unwrap().data().borrow_mut().size = s;
+            s
+        })
+        .collect();
+
+    // sort vector as it makes part2 easy
     v.sort();
 
     let p1: u32 = v.iter().filter(|&s| *s <= 100000).sum();
