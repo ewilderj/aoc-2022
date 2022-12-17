@@ -1,6 +1,7 @@
 use id_tree::InsertBehavior::*;
 use id_tree::*;
 use std::iter::Peekable;
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Clone)]
 struct FileNode {
@@ -64,9 +65,17 @@ fn process_line<'b, 'a>(
     }
 }
 
+fn dump_tree(fs: &Tree<FileNode>) {
+        let mut s = String::new();
+    let _ = &fs.write_formatted(&mut s).unwrap();
+    println!("{}", &s);
+
+}
+
 fn main() {
     let mut inp = include_str!("../test.txt").lines().peekable();
     let mut fs: Tree<FileNode> = Tree::new();
+    let mut sizes: HashMap<u32, u32> = HashMap::new();
     let _ = inp.next(); // skip "cd /" as implicit at the top of each input
     let mut cwd: NodeId = fs
         .insert(Node::new(FileNode::new("/", 0, true)), AsRoot)
@@ -81,19 +90,30 @@ fn main() {
             }
         }
     }
-    let mut s = String::new();
-    let _ = &fs.write_formatted(&mut s).unwrap();
-    println!("{}", &s);
+    dump_tree(&fs);
 
     // depth-first enumeration of directories
-    let  nodes = fs
+    let  node_ids = fs
         .traverse_post_order_ids(&root)
-        .unwrap()
-        .filter(|nid| fs.get(nid).unwrap().data().dir);
+        .unwrap();
 
-    for n in nodes {
+
+    // we're looking at each dir node
+    // the sizes are the sum of the child sizes
+
+    let mut t: u32 = 0;
+    let mut wasdir: bool = true;
+    for n in node_ids {
         // n is &Node
-        println!("{:#?}", n);
-        let m: &mut FileNode = (*fs.get(&n).unwrap()).data_mut();
+        println!("{:#?}", &n);
+        let nn: &mut Node<FileNode> = fs.get_mut(&n).unwrap();
+        let fnode: &mut FileNode = nn.data_mut();
+
+        if fnode.dir {
+            let mut kids = fs.children(&n).unwrap();
+            fnode.size = t;
+            wasdir = true;
+        }
     }
+    dump_tree(&fs);
 }
