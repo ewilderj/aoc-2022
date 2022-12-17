@@ -1,7 +1,8 @@
 use id_tree::InsertBehavior::*;
 use id_tree::*;
+use std::cell::{RefCell, RefMut};
 use std::iter::Peekable;
-use std::collections::HashMap;
+
 
 #[derive(Debug, PartialEq, Clone)]
 struct FileNode {
@@ -18,17 +19,16 @@ impl FileNode {
             dir: d,
         }
     }
-
-    fn size_mut(&mut self) -> &mut u32 {
-        &mut self.size
-    }
 }
+
+// use refcells to easily mutate data inside an immutable structure
+type MyTree = Tree<RefCell<FileNode>>;
 
 fn process_line<'b, 'a>(
     cwd: &NodeId,
     inp: &mut Peekable<impl Iterator<Item = &'b str>>,
     s: &str,
-    t: &'a mut Tree<FileNode>,
+    t: &'a mut MyTree,
 ) -> Option<&'a NodeId> {
     // println!("{}", s);
     if s == "$ ls" {
@@ -40,7 +40,7 @@ fn process_line<'b, 'a>(
                 Ok(i) => (false, i),
                 _ => (true, 0),
             };
-            let n = Node::new(FileNode::new(fname, sz, isdir));
+            let n = Node::new(RefCell::new(FileNode::new(fname, sz, isdir)));
             let _ = &t.insert(n, UnderNode(cwd)).unwrap();
         }
         // println!("{:#?}", t);
@@ -57,7 +57,7 @@ fn process_line<'b, 'a>(
         let c: &NodeId = &t
             .children_ids(cwd)
             .unwrap()
-            .filter(|k| &t.get(k).unwrap().data().name == d)
+            .filter(|k| &t.get(k).unwrap().data().borrow().name == d)
             .next()
             .unwrap();
         // println!("cd into {} {:#?}", d, c);
@@ -65,20 +65,12 @@ fn process_line<'b, 'a>(
     }
 }
 
-fn dump_tree(fs: &Tree<FileNode>) {
-        let mut s = String::new();
-    let _ = &fs.write_formatted(&mut s).unwrap();
-    println!("{}", &s);
-
-}
-
 fn main() {
-    let mut inp = include_str!("../test.txt").lines().peekable();
-    let mut fs: Tree<FileNode> = Tree::new();
-    let mut sizes: HashMap<u32, u32> = HashMap::new();
+    let mut inp = include_str!("../input.txt").lines().peekable();
+    let mut fs: MyTree = Tree::new();
     let _ = inp.next(); // skip "cd /" as implicit at the top of each input
     let mut cwd: NodeId = fs
-        .insert(Node::new(FileNode::new("/", 0, true)), AsRoot)
+        .insert(Node::new(RefCell::new(FileNode::new("/", 0, true))), AsRoot)
         .unwrap();
     let root: NodeId = cwd.clone();
     //   println!("{:#?}", &fs.get(&cwd).unwrap());
@@ -90,30 +82,30 @@ fn main() {
             }
         }
     }
-    dump_tree(&fs);
 
     // depth-first enumeration of directories
-    let  node_ids = fs
+    let node_ids = fs
         .traverse_post_order_ids(&root)
-        .unwrap();
+        .unwrap()
+        .filter(|n| fs.get(n).unwrap().data().borrow().dir);
 
+    // compute directory size
+    let mut v: Vec<u32> = node_ids.clone().map (|n| {
+        let s: u32 = fs
+            .children(&n)
+            .unwrap()
+            .map(|c| c.data().borrow().size)
+            .sum::<u32>();
+        fs.get(&n).unwrap().data().borrow_mut().size = s;
+        s
+    }).collect();
+    v.sort();
 
-    // we're looking at each dir node
-    // the sizes are the sum of the child sizes
+    let p1: u32 = v.iter().filter(|&s| *s <= 100000).sum();
+    println!("part1: {}", p1);
 
-    let mut t: u32 = 0;
-    let mut wasdir: bool = true;
-    for n in node_ids {
-        // n is &Node
-        println!("{:#?}", &n);
-        let nn: &mut Node<FileNode> = fs.get_mut(&n).unwrap();
-        let fnode: &mut FileNode = nn.data_mut();
-
-        if fnode.dir {
-            let mut kids = fs.children(&n).unwrap();
-            fnode.size = t;
-            wasdir = true;
-        }
-    }
-    dump_tree(&fs);
+    let root_size = fs.get(&root).unwrap().data().borrow().size;
+    let needed_space = 30000000 - (70000000 - root_size);
+    let p2: u32 = *v.iter().filter(|&s| *s >= needed_space).next().unwrap();
+    println!("part2: {}", p2);
 }
