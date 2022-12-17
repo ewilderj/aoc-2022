@@ -1,6 +1,6 @@
 use id_tree::InsertBehavior::*;
 use id_tree::*;
-use std::cell::RefCell;
+use std::cell::{RefCell, Ref, RefMut};
 use std::iter::Peekable;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -23,10 +23,25 @@ impl FileNode {
 // use refcells to easily mutate data inside an immutable structure
 type MyTree = Tree<RefCell<FileNode>>;
 
+// and hide some of the repetition with convenience functions
+trait EasyFileNode {
+    fn filenode(&self, n: &NodeId) -> Ref<FileNode>;
+    fn filenode_mut(&self, n: &NodeId) -> RefMut<FileNode>;
+}
+
+impl EasyFileNode for MyTree {
+    fn filenode(&self, n: &NodeId) -> Ref<FileNode> {
+        return self.get(n).unwrap().data().borrow();
+    }
+    fn filenode_mut(&self, n: &NodeId) -> RefMut<FileNode> {
+        return self.get(n).unwrap().data().borrow_mut();
+    }
+}
+
 fn process_line<'b, 'a>(
     cwd: &NodeId,
     inp: &mut Peekable<impl Iterator<Item = &'b str>>,
-    s: &str,
+    s: &'b str,
     t: &'a mut MyTree,
 ) -> Option<&'a NodeId> {
     if s == "$ ls" {
@@ -54,7 +69,7 @@ fn process_line<'b, 'a>(
         let c: &NodeId = &t
             .children_ids(cwd)
             .unwrap()
-            .filter(|k| &t.get(k).unwrap().data().borrow().name == d)
+            .filter(|k| &t.filenode(k).name == d)
             .next()
             .unwrap();
         // returning a value changes the cwd
@@ -86,7 +101,7 @@ fn main() {
     let node_ids = fs
         .traverse_post_order_ids(&root)
         .unwrap()
-        .filter(|n| fs.get(n).unwrap().data().borrow().dir);
+        .filter(|n| fs.filenode(n).dir);
 
     // compute directory sizes and collect them
     let mut v: Vec<u32> = node_ids
@@ -96,7 +111,7 @@ fn main() {
                 .unwrap()
                 .map(|c| c.data().borrow().size)
                 .sum::<u32>();
-            fs.get(&n).unwrap().data().borrow_mut().size = s;
+            fs.filenode_mut(&n).size = s;
             s
         })
         .collect();
@@ -107,8 +122,7 @@ fn main() {
     let p1: u32 = v.iter().filter(|&s| *s <= 100000).sum();
     println!("part1: {}", p1);
 
-    let root_size = fs.get(&root).unwrap().data().borrow().size;
-    let needed_space = root_size - 40000000;
+    let needed_space = fs.filenode(&root).size - 40000000;
     let p2: u32 = *v.iter().filter(|&s| *s >= needed_space).next().unwrap();
     println!("part2: {}", p2);
 }
