@@ -108,7 +108,7 @@ fn main() {
     println!("part1: {}", p1);
 
     let root_size = fs.get(&root).unwrap().data().borrow().size;
-    let needed_space = 30000000 - (70000000 - root_size);
+    let needed_space = root_size - 40000000;
     let p2: u32 = *v.iter().filter(|&s| *s >= needed_space).next().unwrap();
     println!("part2: {}", p2);
 }
