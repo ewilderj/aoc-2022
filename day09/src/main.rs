@@ -2,8 +2,7 @@ use std::collections::HashSet;
 use std::iter;
 
 fn newt(hx: i32, hy: i32, tx: i32, ty: i32) -> (i32, i32) {
-    let dx = hx - tx;
-    let dy = hy - ty;
+    let (dx, dy) = (hx - tx, hy - ty);
     let m = dx.abs() > 1 || dy.abs() > 1;
     let (tdx, tdy) = (
         if m { dx.signum() } else { 0 },
