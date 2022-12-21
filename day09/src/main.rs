@@ -3,12 +3,12 @@ use std::iter;
 
 fn newt(hx: i32, hy: i32, tx: i32, ty: i32) -> (i32, i32) {
     let (dx, dy) = (hx - tx, hy - ty);
-    let m = dx.abs() > 1 || dy.abs() > 1;
-    let (tdx, tdy) = (
-        if m { dx.signum() } else { 0 },
-        if m { dy.signum() } else { 0 },
-    );
-    (tx + tdx, ty + tdy)
+
+    if dx.abs() > 1 || dy.abs() > 1 {
+        (tx + dx.signum(), ty + dy.signum())
+    } else {
+        (tx, ty)
+    }
 }
 
 fn hd(c: &char) -> (i32, i32) {
