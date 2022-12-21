@@ -10,15 +10,17 @@ const B: Option<Direction> = Some(Direction::BACKWARD);
 
 type TreeSet = HashSet<(usize, usize)>;
 
-// given a starting point (x0,y0) move across or down and record
+// given a starting point (x0,y0) move horiz or vert and record
 // trees that meet the visibility criteria. max is always i32::MAX
-// for part1, which lets us use that to vary the comparator
+// for part1, which lets us use that to vary the comparator.
+// though the puzzle doesn't need it, we could walk diagonally with
+// this solution.
 fn viz(
     v: &Vec<Vec<i32>>,
     x0: i32,
     y0: i32,
-    across: Option<Direction>,
-    down: Option<Direction>,
+    horiz: Option<Direction>,
+    vert: Option<Direction>,
     max: i32,
 ) -> TreeSet {
     let mut r: TreeSet = TreeSet::new();
@@ -31,12 +33,12 @@ fn viz(
 
     let (mut x, mut y) = (x0 as usize, y0 as usize);
 
-    let (dx, tx) = match across {
+    let (dx, tx) = match horiz {
         F => (1, w - 1),
         B => (-1, 0),
         _ => (0, usize::MAX),
     };
-    let (dy, ty) = match down {
+    let (dy, ty) = match vert {
         F => (1, h - 1),
         B => (-1, 0),
         _ => (0, usize::MAX),
@@ -75,7 +77,7 @@ fn main() {
     // yes, this solution works for non-square grids too!
     let (w, h) = (l[0].len() as i32, l.len() as i32);
 
-    // viz computes the set of visibile trees from any point
+    // viz computes the set of visible trees from any point
     // for part1, we examine edges, and take the union of
     // all edge-visible trees.
     let t: TreeSet = (0..h as i32)
