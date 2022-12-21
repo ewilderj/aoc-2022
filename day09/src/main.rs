@@ -11,7 +11,7 @@ fn newt(hx: i32, hy: i32, tx: i32, ty: i32) -> (i32, i32) {
     }
 }
 
-fn hd(c: &char) -> (i32, i32) {
+fn hd(c: char) -> (i32, i32) {
     match c {
         'R' => (1, 0),
         'L' => (-1, 0),
@@ -20,12 +20,12 @@ fn hd(c: &char) -> (i32, i32) {
     }
 }
 
-fn runit(prog: &Vec<char>,  rlen: usize) -> usize {
+fn runit(prog: &Vec<(i32, i32)>,  rlen: usize) -> usize {
     let mut tp: HashSet<(i32, i32)> = HashSet::from([(0, 0)]);
     let mut x: Vec<i32> = vec![0; rlen];
     let mut y: Vec<i32> = vec![0; rlen];
 
-    for (dx, dy) in prog.iter().map(hd) {
+    for (dx, dy) in prog.iter() {
         (x[0], y[0]) = (x[0] + dx, y[0] + dy);
         for n in 0..rlen-1 {
             (x[n+1], y[n+1]) = newt(x[n], y[n], x[n+1], y[n+1]);
@@ -37,7 +37,7 @@ fn runit(prog: &Vec<char>,  rlen: usize) -> usize {
 
 fn main() {
     // "compile" program by expanding the repetitions
-    let prog: Vec<char> = include_str!("../input.txt")
+    let prog: Vec<(i32, i32)> = include_str!("../input.txt")
         .lines()
         .map(|s| {
             let (c, t) = s.split_once(' ').unwrap();
@@ -46,6 +46,7 @@ fn main() {
                 .collect::<Vec<char>>()
         })
         .flatten()
+        .map(hd)
         .collect();
 
     println!("part1: {}", runit(&prog, 2));
