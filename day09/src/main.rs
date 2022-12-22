@@ -41,7 +41,7 @@ fn main() {
         .lines()
         .map(|s| {
             let (c, t) = s.split_once(' ').unwrap();
-            iter::repeat(hd(c.chars().next().unwrap())).take(t.parse::<u32>().unwrap() as usize)
+            iter::repeat(hd(c.chars().next().unwrap())).take(t.parse::<usize>().unwrap())
         })
         .flatten()
         .collect();
