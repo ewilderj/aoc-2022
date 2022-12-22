@@ -20,17 +20,17 @@ fn hd(c: char) -> (i32, i32) {
     }
 }
 
-fn runit(prog: &Vec<(i32, i32)>,  rlen: usize) -> usize {
+fn runit(prog: &Vec<(i32, i32)>, rlen: usize) -> usize {
     let mut tp: HashSet<(i32, i32)> = HashSet::from([(0, 0)]);
     let mut x: Vec<i32> = vec![0; rlen];
     let mut y: Vec<i32> = vec![0; rlen];
 
     for (dx, dy) in prog.iter() {
         (x[0], y[0]) = (x[0] + dx, y[0] + dy);
-        for n in 0..rlen-1 {
-            (x[n+1], y[n+1]) = newt(x[n], y[n], x[n+1], y[n+1]);
+        for n in 0..rlen - 1 {
+            (x[n + 1], y[n + 1]) = newt(x[n], y[n], x[n + 1], y[n + 1]);
         }
-        tp.insert((x[rlen-1],y[rlen-1]));
+        tp.insert((x[rlen - 1], y[rlen - 1]));
     }
     tp.len()
 }
@@ -41,12 +41,9 @@ fn main() {
         .lines()
         .map(|s| {
             let (c, t) = s.split_once(' ').unwrap();
-            iter::repeat(c.chars().next().unwrap())
-                .take(t.parse::<u32>().unwrap() as usize)
-                .collect::<Vec<char>>()
+            iter::repeat(hd(c.chars().next().unwrap())).take(t.parse::<u32>().unwrap() as usize)
         })
         .flatten()
-        .map(hd)
         .collect();
 
     println!("part1: {}", runit(&prog, 2));
