@@ -87,7 +87,7 @@ fn main() {
     let ceiling: u64 = monkeys
         .iter()
         .map(|m| m.divisible_by)
-        .reduce(|a, x| a * x)
+        .reduce(std::ops::Mul::mul)
         .unwrap();
 
     // parts 1 and 2 differ only in number of rounds
@@ -126,7 +126,7 @@ fn main() {
             .rev()
             .take(2)
             .cloned()
-            .reduce(|a, x| a * x)
+            .reduce(std::ops::Mul::mul)
             .unwrap());
     }
 }
