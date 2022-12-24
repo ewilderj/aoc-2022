@@ -36,6 +36,7 @@ fn main() {
 
     for (i, m) in include_str!("../input.txt").split("\n\n").enumerate() {
         let mut l = m.lines().skip(1);
+
         let is: Vec<u64> = l
             .next()
             .unwrap()
@@ -44,11 +45,9 @@ fn main() {
             .split(", ")
             .map(|n| n.parse::<u64>().unwrap())
             .collect();
-        // println!("{i} {:?}", &is);
-
         ostash.insert(i, RefCell::new(is));
-        let ops: Vec<&str> = l.next().unwrap().get(23..).unwrap().split(" ").collect();
 
+        let ops: Vec<&str> = l.next().unwrap().get(23..).unwrap().split(" ").collect();
         let op: Op = match ops[0] {
             "*" => match ops[1].parse::<u64>() {
                 Ok(n) => Op::Multiply(n),
