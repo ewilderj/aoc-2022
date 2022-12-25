@@ -23,8 +23,6 @@ impl Signal {
     // this is the logic for part1:
     // 0 for equal, 1 for right order, -1 for wrong order
     fn compare(l: &Signal, r: &Signal) -> i32 {
-        // println!("Compare {:?}\n        {:?}", l, r);
-
         if let Signal::I(m) = l {
             if let Signal::I(n) = r {
                 // both numbers:
@@ -196,7 +194,7 @@ fn main() {
     println!("part1: {:?}", p1);
 
     let mut l: Vec<_> = include_str!("../input.txt")
-        .replace("10", "A") // convert numbers to base 11 makes lexing easier
+        .replace("10", "A")
         .lines()
         .filter(|l| l.len() > 0)
         .map(lex)
@@ -214,5 +212,3 @@ fn main() {
 
     println!("part2: {}", a * b);
 }
-
-// 5105 is too low
