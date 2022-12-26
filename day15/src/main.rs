@@ -59,11 +59,9 @@ fn main() {
         .lines()
         .map(|s| {
             let c = re.captures_iter(s).next().unwrap();
-            let (sx, sy) = (
+            let (sx, sy, bx, by) = (
                 c.get(1).unwrap().as_str().parse::<i32>().unwrap(),
                 c.get(2).unwrap().as_str().parse::<i32>().unwrap(),
-            );
-            let (bx, by) = (
                 c.get(3).unwrap().as_str().parse::<i32>().unwrap(),
                 c.get(4).unwrap().as_str().parse::<i32>().unwrap(),
             );
@@ -81,7 +79,11 @@ fn main() {
 
     let xs = coverage(&sensors, TROW);
     // remove overlaps and calculate covered positions, minus beacons & sensors
-    let r: i32 = canonicalize(&xs).iter().map(|(f, t)| t-f+1).sum::<i32>() - taken as i32;
+    let r: i32 = canonicalize(&xs)
+        .iter()
+        .map(|(f, t)| t - f + 1)
+        .sum::<i32>()
+        - taken as i32;
 
     println!("part1: {}", r);
 
@@ -89,7 +91,7 @@ fn main() {
     for y in 0..=SMAX {
         let xs = canonicalize(&coverage(&sensors, y));
         // if we have a gap then we found the beacon
-        if xs.len () > 1 {
+        if xs.len() > 1 {
             println!("part2: {}", SMAX as u64 * (xs[0].1 as u64 + 1) + y as u64);
             break;
         }
