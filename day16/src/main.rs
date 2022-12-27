@@ -6,9 +6,10 @@ use std::collections::{BTreeSet, HashMap};
 use std::hash::{Hash, Hasher};
 
 // This took a while! I tried a zillion wrong turns first, and eventually went
-// looking for a bit of help. Many thanks to Dazbo whose insights were useful.
-// You can read their account for Python here:
-//   https://aoc.just2good.co.uk/2022/16
+// looking for a bit of help after a hilarious failed genetic algorithm
+// approach. Many thanks to Dazbo whose insights were useful.
+//
+// You can read their account for Python here: https://aoc.just2good.co.uk/2022/16
 //
 // I took a slightly different approach than Dazbo, who simulated the entire
 // journey: instead I opted for pruning the 0-yielding valves away by
@@ -55,7 +56,7 @@ fn relief(
 
         // if we have an elephant, compare against the best result sending them now
         if elephant {
-            r = cmp::max(r, relief(26, &"AA", &valves, false, flow, distance, cache));
+            r = cmp::max(r, relief(26, &"AA", valves, false, flow, distance, cache));
         }
 
         // when we get here, means it's time to open our valve!
@@ -105,8 +106,7 @@ fn main() {
     }
 
     // we need to optimize a journey between yielding-valves so as to maximize
-    // the resulting score. smells super NP-complete to me -- as there are N!
-    // possible orderings
+    // the resulting score.
     let valves: BTreeSet<&str> = flow
         .iter()
         .filter(|(_, &f)| f > 0)
@@ -118,9 +118,6 @@ fn main() {
         relief(30, &"AA", &valves, false, &flow, &distance, &mut cache)
     );
 
-    // my optimizations for part1 fall apart when part2 is considered, as
-    // you have the elephant in the room (ha ha)
-    // cache = HashMap::new();
     println!(
         "part2: {}",
         relief(26, &"AA", &valves, true, &flow, &distance, &mut cache)
