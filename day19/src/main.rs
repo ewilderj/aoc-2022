@@ -4,6 +4,13 @@ use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
+// This is a pretty slow search, though it runs in seconds.
+// Other people have gotten millisecond execution with smarter
+// strategies for pruning the search space.
+//
+// For instance, I do nothing with the knowledge of the time
+// remaining, but rely on recursion to do all the calculation...
+
 #[derive(Debug, PartialEq, Clone)]
 struct Blueprint {
     id: u32,
@@ -53,6 +60,8 @@ fn search(
     // now let's explore decision options
 
     // buy new geode bot if we can!
+    // it works as a heuristic to not buy other options for this puzzle,
+    // though it's not necessarily a correct assumption for larger N
     if ore >= b.geode_cost.0 && obsidian >= b.geode_cost.1 {
         r_max = cmp::max(
             r_max,
@@ -65,13 +74,13 @@ fn search(
             ),
         );
     } else {
+
         // consider the supply chain purposes
+        // trimming with some guesses: we don't need to build new
+        // bots once we're 2 hops down the chain, and don't need
+        // to exceed the per-turn supply requirements
 
-
-        // buy a new orebot, but also not bother if ore is growing
-        // no point in making more ore-bots than the amount we can spend per-round
-        // which is always 4
-        if ore >= b.ore_cost && r_ore < 4 {
+        if ore >= b.ore_cost && r_ore < 4 && r_obsidian == 0 {
             r_max = cmp::max(
                 r_max,
                 search(
@@ -84,10 +93,7 @@ fn search(
             );
         }
 
-        // use money to buy a new claybot
-        // again, most clay per round is 20, so don't need any more
-        // bots than this
-        if ore >= b.clay_cost && r_clay < 20 {
+        if ore >= b.clay_cost && r_clay < 20 && r_geode == 0 {
             r_max = cmp::max(
                 r_max,
                 search(
@@ -100,7 +106,6 @@ fn search(
             );
         }
 
-        // buy new obsidian bot: but no more than 20 needed
         if ore >= b.obsidian_cost.0 && clay >= b.obsidian_cost.1 && r_obsidian < 20 {
             r_max = cmp::max(
                 r_max,
@@ -125,8 +130,8 @@ fn search(
         if clay < 20 {
             r_max = cmp::max(r_max, search(t - 1, c, b, robots, nr));
         }
-    }
 
+    }
     c.insert(hk, r_max);
 
     return r_max;
