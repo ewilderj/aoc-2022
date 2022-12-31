@@ -25,9 +25,6 @@ fn search(
     let (ore, clay, obsidian, geode) = resources;
 
     if t <= 0 {
-        // if geode >1 {
-        //     println!("MAX: Minute {t}\nResources: {:?}\nRobots: {:?}", resources, robots);
-        // }
         return geode;
     }
 
@@ -42,8 +39,6 @@ fn search(
         return *r;
     }
 
-    // println!("Minute {t}\nResources: {:?}\nRobots: {:?}", resources, robots);
-
     let (r_ore, r_clay, r_obsidian, r_geode) = robots;
 
     let nr = (
@@ -55,11 +50,11 @@ fn search(
 
     let mut r_max = 0;
 
-    // now let's just perm the available choices
+    // now let's explore decision options
 
-    // #4 - buy new geode bot if we can!
+    // buy new geode bot if we can!
     if ore >= b.geode_cost.0 && obsidian >= b.geode_cost.1 {
-        r_max = std::cmp::max(
+        r_max = cmp::max(
             r_max,
             search(
                 t - 1,
@@ -72,11 +67,12 @@ fn search(
     } else {
         // consider the supply chain purposes
 
-        // #1 -  buy a new orebot, but also not bother if ore is growing
+
+        // buy a new orebot, but also not bother if ore is growing
         // no point in making more ore-bots than the amount we can spend per-round
         // which is always 4
         if ore >= b.ore_cost && r_ore < 4 {
-            r_max = std::cmp::max(
+            r_max = cmp::max(
                 r_max,
                 search(
                     t - 1,
@@ -88,11 +84,11 @@ fn search(
             );
         }
 
-        // #2 - use money to buy a new claybot
+        // use money to buy a new claybot
         // again, most clay per round is 20, so don't need any more
         // bots than this
         if ore >= b.clay_cost && r_clay < 20 {
-            r_max = std::cmp::max(
+            r_max = cmp::max(
                 r_max,
                 search(
                     t - 1,
@@ -104,9 +100,9 @@ fn search(
             );
         }
 
-        // #3 - buy new obsidian bot: but no more than 20 needed
+        // buy new obsidian bot: but no more than 20 needed
         if ore >= b.obsidian_cost.0 && clay >= b.obsidian_cost.1 && r_obsidian < 20 {
-            r_max = std::cmp::max(
+            r_max = cmp::max(
                 r_max,
                 search(
                     t - 1,
@@ -123,9 +119,11 @@ fn search(
             );
         }
 
-        // finally compare against just running the clock
-        if obsidian < 20 {
-            r_max = std::cmp::max(r_max, search(t - 1, c, b, robots, nr));
+        // finally compare against just running the clock, but not worth the
+        // comparison if we already have enough clay (obsidian is considered
+        // in the other arm of this outer if-else)
+        if clay < 20 {
+            r_max = cmp::max(r_max, search(t - 1, c, b, robots, nr));
         }
     }
 
@@ -137,10 +135,7 @@ fn search(
 fn main() {
     let mut c = Cache::new();
 
-    //     println!("{:?}", search(0, &mut c, &b1, (1, 0, 0, 0), (0, 0, 0, 0)));
-
-    let re =
-        Regex::new(r"Blueprint (\d+):\D+(\d+)\D+(\d+)\D+(\d+)\D+(\d+)\D+(\d+)\D+(\d+)").unwrap();
+    let re = Regex::new(r"(\d+):\D+(\d+)\D+(\d+)\D+(\d+)\D+(\d+)\D+(\d+)\D+(\d+)").unwrap();
     let s = include_str!("../input.txt")
         .lines()
         .map(|s| {
@@ -169,7 +164,7 @@ fn main() {
         q = q + b.id * r;
     }
     println!("part1: {}", q);
-    // prt2: we have 32 minutes now
+
     q = 1;
     for b in s.iter().take(3) {
         let r = search(32, &mut c, &b, (1, 0, 0, 0), (0, 0, 0, 0));
