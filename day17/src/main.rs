@@ -142,7 +142,6 @@ fn main() {
         coded.push(b);
     }
 
-    let mut h0: usize = 0;
     let mut r0: usize = 0;
     let mut dr = 0;
     let mut dh: usize = 0;
@@ -154,8 +153,6 @@ fn main() {
                 .map(|i| coded[i + prefix] == coded[i + prefix + period])
                 .all(|x| x);
             if found {
-                // y before the cycle starts
-                h0 = prefix as usize;
                 // rocks before the cycle starts
                 r0 = h2r[&prefix] as usize;
                 // how many rocks it takes to build delta-height
@@ -167,13 +164,11 @@ fn main() {
         }
     }
 
-    // println!("h0 {} dh {} r0 {} dr {}", h0, dh, r0, dr);
-
     let target = 1000000000000usize;
     let t1 = target - r0; // remove prefix number of rocks
     let tm = t1 / dr; // how many cycles
     let tr = t1 % dr; // how many rocks left over
-    let topup = r2h[&(tr + r0)] - h0; // how much extra height bc of that
+    let topup = r2h[&(tr + r0)]; // how much extra height bc of `tr` and `r0` (leftover and prefix #)
 
-    println!("part2: {}", topup + tm * dh + h0);
+    println!("part2: {}", topup + tm * dh);
 }
