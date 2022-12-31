@@ -31,7 +31,7 @@ fn search(
 ) -> u32 {
     let (ore, clay, obsidian, geode) = resources;
 
-    if t <= 0 {
+    if t == 0 {
         return geode;
     }
 
@@ -134,7 +134,7 @@ fn search(
     }
     c.insert(hk, r_max);
 
-    return r_max;
+    r_max
 }
 
 fn main() {
@@ -164,17 +164,17 @@ fn main() {
 
     let mut q = 0;
     for b in s.iter() {
-        let r = search(24, &mut c, &b, (1, 0, 0, 0), (0, 0, 0, 0));
+        let r = search(24, &mut c, b, (1, 0, 0, 0), (0, 0, 0, 0));
         // println!("b{} {:?}", b.id, r);
-        q = q + b.id * r;
+        q += b.id * r;
     }
     println!("part1: {}", q);
 
     q = 1;
     for b in s.iter().take(3) {
-        let r = search(32, &mut c, &b, (1, 0, 0, 0), (0, 0, 0, 0));
+        let r = search(32, &mut c, b, (1, 0, 0, 0), (0, 0, 0, 0));
         // println!("b{} {:?}", b.id, r);
-        q = q * r;
+        q *= r;
     }
     println!("part2: {}", q);
 }
