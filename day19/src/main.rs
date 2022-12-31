@@ -54,79 +54,81 @@ fn search(
     );
 
     let mut r_max = 0;
-    let mut note = String::new();
 
     // now let's just perm the available choices
 
-    // #1 - use money to buy a new orebot, but also not bother if ore is growing
-    if ore >= b.ore_cost  {
-        let r = search(
-            t - 1,
-            c,
-            b,
-            (r_ore + 1, r_clay, r_obsidian, r_geode),
-            (nr.0 - b.ore_cost, nr.1, nr.2, nr.3),
-        );
-        if r > r_max {
-            note = format!("Time {t}: bought ore robot");
-            r_max = r;
-        }
-    }
-
-    // #2 - use money to buy a new claybot
-    if ore >= b.clay_cost {
-        let r = search(
-            t - 1,
-            c,
-            b,
-            (r_ore, r_clay + 1, r_obsidian, r_geode),
-            (nr.0 - b.clay_cost, nr.1, nr.2, nr.3),
-        );
-
-        if r > r_max {
-            note = format!("Time {t}: bought clay robot");
-            r_max = r;
-        }
-    }
-
-    // #3 - buy new obsidian bot
-    if ore >= b.obsidian_cost.0 && clay >= b.obsidian_cost.1 {
-        let r = search(
-            t - 1,
-            c,
-            b,
-            (r_ore, r_clay, r_obsidian + 1, r_geode),
-            (
-                nr.0 - b.obsidian_cost.0,
-                nr.1 - b.obsidian_cost.1,
-                nr.2,
-                nr.3,
+    // #4 - buy new geode bot if we can!
+    if ore >= b.geode_cost.0 && obsidian >= b.geode_cost.1 {
+        r_max = std::cmp::max(
+            r_max,
+            search(
+                t - 1,
+                c,
+                b,
+                (r_ore, r_clay, r_obsidian, r_geode + 1),
+                (nr.0 - b.geode_cost.0, nr.1, nr.2 - b.geode_cost.1, nr.3),
             ),
         );
-        if r > r_max {
-            note = format!("Time {t}: bought obsidian robot");
-            r_max = r;
+    } else {
+        // consider the supply chain purposes
+
+        // #1 -  buy a new orebot, but also not bother if ore is growing
+        // no point in making more ore-bots than the amount we can spend per-round
+        // which is always 4
+        if ore >= b.ore_cost && r_ore < 4 {
+            r_max = std::cmp::max(
+                r_max,
+                search(
+                    t - 1,
+                    c,
+                    b,
+                    (r_ore + 1, r_clay, r_obsidian, r_geode),
+                    (nr.0 - b.ore_cost, nr.1, nr.2, nr.3),
+                ),
+            );
+        }
+
+        // #2 - use money to buy a new claybot
+        // again, most clay per round is 20, so don't need any more
+        // bots than this
+        if ore >= b.clay_cost && r_clay < 20 {
+            r_max = std::cmp::max(
+                r_max,
+                search(
+                    t - 1,
+                    c,
+                    b,
+                    (r_ore, r_clay + 1, r_obsidian, r_geode),
+                    (nr.0 - b.clay_cost, nr.1, nr.2, nr.3),
+                ),
+            );
+        }
+
+        // #3 - buy new obsidian bot: but no more than 20 needed
+        if ore >= b.obsidian_cost.0 && clay >= b.obsidian_cost.1 && r_obsidian < 20 {
+            r_max = std::cmp::max(
+                r_max,
+                search(
+                    t - 1,
+                    c,
+                    b,
+                    (r_ore, r_clay, r_obsidian + 1, r_geode),
+                    (
+                        nr.0 - b.obsidian_cost.0,
+                        nr.1 - b.obsidian_cost.1,
+                        nr.2,
+                        nr.3,
+                    ),
+                ),
+            );
+        }
+
+        // finally compare against just running the clock
+        if obsidian < 20 {
+            r_max = std::cmp::max(r_max, search(t - 1, c, b, robots, nr));
         }
     }
 
-    // #4 - buy new geode bot
-    if ore >= b.geode_cost.0 && obsidian >= b.geode_cost.1 {
-        let r = search(
-            t - 1,
-            c,
-            b,
-            (r_ore, r_clay, r_obsidian, r_geode + 1),
-            (nr.0 - b.geode_cost.0, nr.1, nr.2 - b.geode_cost.1, nr.3),
-        );
-        if r > r_max {
-            note = format!("Time {t}: bought geode robot");
-            r_max = r;
-        }
-    }
-
-    if ore < 30 {
-        r_max = std::cmp::max(r_max, search(t - 1, c, b, robots, nr));
-    }
     c.insert(hk, r_max);
 
     return r_max;
@@ -163,7 +165,7 @@ fn main() {
     let mut q = 0;
     for b in s.iter() {
         let r = search(24, &mut c, &b, (1, 0, 0, 0), (0, 0, 0, 0));
-        println!("b{} {:?}", b.id, r);
+        // println!("b{} {:?}", b.id, r);
         q = q + b.id * r;
     }
     println!("part1: {}", q);
@@ -171,12 +173,8 @@ fn main() {
     q = 1;
     for b in s.iter().take(3) {
         let r = search(32, &mut c, &b, (1, 0, 0, 0), (0, 0, 0, 0));
-        println!("b{} {:?}", b.id, r);
+        // println!("b{} {:?}", b.id, r);
         q = q * r;
     }
     println!("part2: {}", q);
-
 }
-
-
-// 34632 -- too low
